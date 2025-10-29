@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat với AI</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+    #chat-box { border: 1px solid #ccc; border-radius: 6px; padding: 10px; height: 400px; overflow-y: auto; }
+    .msg { margin: 8px 0; }
+    .user { font-weight: bold; color: #006eff; }
+    .assistant { font-weight: bold; color: #d14; }
+    #input-box { display: flex; margin-top: 10px; }
+    #prompt { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+    #send-btn { padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>Smart AI Helping new dev join project</h2>
+
+  <div id="chat-box"></div>
+
+  <div id="input-box">
+    <input id="prompt" type="text" placeholder="Nhập tin nhắn...">
+    <button id="send-btn">Gửi</button>
+  </div>
+
+<script>
+  const chatBox = document.getElementById("chat-box");
+  const promptInput = document.getElementById("prompt");
+  const sendBtn = document.getElementById("send-btn");
+
+  function addMessage(role, text) {
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<span class="${role}">${role === "user" ? "Bạn" : "AI"}:</span> ${text}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight; // auto scroll
+  }
+
+  async function sendMessage() {
+    const prompt = promptInput.value.trim();
+    if (!prompt) return;
+
+    addMessage("user", prompt);
+    promptInput.value = "";
+
+    try {
+      const res = await fetch("http://localhost:8000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+      addMessage("assistant", data.reply);
+    } catch (err) {
+      addMessage("assistant", "⚠️ Lỗi khi gọi API!");
+      console.error(err);
+    }
+  }
+
+  sendBtn.onclick = sendMessage;
+  promptInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+  });
+</script>
+
+</body>
+</html>
